@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/go-redis/redis"
 	"log"
 	"net/http"
 	"net/url"
@@ -13,6 +14,9 @@ import (
 )
 
 const ENTRANCE string = "http://readfree.me/"
+const TODO_LIST_KEY = ENTRANCE + "_todo_urls"
+const DOINT_LIST_KEY = ENTRANCE + "_doing_urls"
+const ALL_KEY = ENTRANCE + "_urls"
 
 var regs = make([]*regexp.Regexp, 0, 10)
 
@@ -25,6 +29,20 @@ func init() {
 }
 
 func main() {
+	client := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	err := client.LPush(TODO_LIST_KEY, ENTRANCE).Err()
+	if err != nil {
+		panic(err)
+	}
+	client.BRPopLPush(TODO_LIST_KEY, DOINT_LIST_KEY, time.Second*10)
+	client.SAdd(ALL_KEY, ENTRANCE)
+	client.SIsMember(ALL_KEY, ENTRANCE)
+
 	urls := make(map[string]bool, 100)
 	urls[ENTRANCE] = false
 
