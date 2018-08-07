@@ -3,14 +3,18 @@ package main
 import (
 	"fmt"
 	"github.com/go-redis/redis"
+	"github.com/mccxj/GoldenHouse/config"
 	"github.com/mccxj/GoldenHouse/spider"
 )
 
 func main() {
+	c := &config.SpiderConfig{}
+	config.Load(c)
+	fmt.Println(c)
 	manager := &spider.RedisManager{redis.NewClient(&redis.Options{
-		Addr:     "100.101.120.200:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
+		Addr:     c.Redis.Addr,
+		Password: c.Redis.Password,
+		DB:       c.Redis.DB,
 	})}
 	spider := spider.NewSpider(manager)
 	spider.Run()
