@@ -1,0 +1,15 @@
+[redis]
+addr = "100.101.120.200:6379"
+password = ""
+db = 0
+
+[headers]
+Host = "readfree.me"
+Connection = "keep-alive"
+Cache-Control = "max-age=0"
+User-Agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36"
+Upgrade-Insecure-Requests = "1"
+Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8"
+#req.Header.Add("Accept-Encoding = gzip, deflate"
+Accept-Language = "zh-CN,zh;q=0.9"
+Cookie = "Hm_lvt_375aa6d601368176e50751c1c6bf0e82=1532316147,1532316183,1533547490; sessionid=8ukyqbsdz2bnfrarime2tzcg4u12e13t; csrftoken=OQMt4Lunj58NS0bVGyrmdzopuM70lByBYsHdBLIG2eKAkg0tLTJjXd3coac9g5AP; Hm_lpvt_375aa6d601368176e50751c1c6bf0e82=1533715742"

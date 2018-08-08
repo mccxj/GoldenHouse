@@ -6,7 +6,8 @@ import (
 )
 
 type SpiderConfig struct {
-	Redis redis
+	Redis   redis
+	Headers map[string]string `toml:"headers"`
 }
 
 type redis struct {

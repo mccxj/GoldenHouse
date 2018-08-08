@@ -2,17 +2,21 @@ package spider
 
 import (
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
 	"github.com/pingcap/tidb/util/goroutine_pool"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 )
 
-const ENTRANCE string = "http://readfree.me/"
+type Site interface {
+	Entrance() string
+	CustomReq(req *http.Request)
+	Extract(todoUrl string, body io.ReadCloser) (urls []string)
+}
 
 type Manager interface {
 	AppendUrl(url string) (bool, error)
@@ -30,7 +34,7 @@ func NewSpider(manager Manager) *Spider {
 	}
 }
 
-func (s *Spider) Run() {
+func (s *Spider) Run(site Site) {
 	pool := gp.New(200 * time.Millisecond)
 	for i := 0; i < 10; i++ {
 		pool.Go(func() {
@@ -43,6 +47,7 @@ func (s *Spider) Run() {
 				if err != nil {
 					log.Fatalln(err)
 				}
+				site.CustomReq(req)
 				resp, err := c.Do(req)
 				if err != nil {
 					log.Fatalln(err)
@@ -53,25 +58,19 @@ func (s *Spider) Run() {
 					log.Fatalf("status code error: %d %s", resp.StatusCode, resp.Status)
 				}
 
-				doc, err := goquery.NewDocumentFromReader(resp.Body)
-				if err != nil {
-					log.Fatal(err)
+				newUrls := site.Extract(todoUrl, resp.Body)
+				for _, newUrl := range newUrls {
+					s.AppendUrl(newUrl)
 				}
-
-				doc.Find("a").Each(func(i int, gs *goquery.Selection) {
-					if href, exist := gs.Attr("href"); exist {
-						newUrl := urlTrim(urlJoin(todoUrl, href))
-						if strings.HasPrefix(newUrl, ENTRANCE) && isValidUrl(newUrl) {
-							s.AppendUrl(newUrl)
-						}
-					}
-				})
 				s.DoneUrl(todoUrl)
 			}
 		})
 	}
 
-	s.AppendUrl(ENTRANCE)
+	_, err := s.AppendUrl(site.Entrance())
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
